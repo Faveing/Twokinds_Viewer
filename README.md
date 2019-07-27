@@ -1,14 +1,18 @@
-# Twokinds_Viewer v0.1
+# Twokinds Viewer v0.1
 A android app meant to be a front end for the webcomic Twokinds. 
 
-# Featurs
+## Featurs
 
 * Can view "most" of the Twokinds webcomic
 
-# What need to be worked on
+## Main problems
+
+* Every comic page before 2019 has been formated in JPG while everything during and after 2019 has been formated as PNG this creates a problem in the current indexing code where anything during and after 2019 will not be found.
+
+## What needs to be worked on
 
 * The entire design of the application
-* A way to save the indexed photos so the application does not have to index them every time it runs
+* A way to save the indexed photos so the application does not have to index them every time it runs.
 
 # Credit
 
