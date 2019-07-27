@@ -1,5 +1,14 @@
-# Twokinds_Viewer
-An android app meant to be a front end for the webcomic Twokinds
+# Twokinds_Viewer v0.1
+A android app meant to be a front end for the webcomic Twokinds. 
+
+# Featurs
+
+* Can view "most" of the Twokinds webcomic
+
+# What need to be worked on
+
+* The entire design of the application
+* A way to save the indexed photos so the application does not have to index them every time it runs
 
 # Credit
 
