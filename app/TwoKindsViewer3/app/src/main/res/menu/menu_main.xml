@@ -4,7 +4,15 @@
     tools:context="com.example.twokindsviewer.MainActivity">
     <item
         android:id="@+id/action_settings"
-        android:orderInCategory="100"
         android:title="@string/refresh_button"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/latest_action"
+        android:title="Latest" />
+    <item
+        android:id="@+id/save_action"
+        android:title="Save" />
+    <item
+        android:id="@+id/quit_action"
+        android:title="Quit" />
 </menu>

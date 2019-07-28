@@ -3,9 +3,6 @@ package com.example.twokindsviewer;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -22,11 +19,15 @@ import android.widget.Toast;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+
 public class MainActivity extends AppCompatActivity {
 
-    int current_page = 1;
-
-    String[] Index_of_pages;
+    private int current_page = 1;
+    private String[] Index_of_pages;
+    private WebView page;
+    private TextView number_holder;
+    private int total_number_of_pages;
+    private String base_url;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,16 +49,23 @@ public class MainActivity extends AppCompatActivity {
 
         current_page = LoadInt();
 
+        number_holder = findViewById(R.id.page_number);
+
         Index_of_pages = new String[1000];
 
-        TextView number_holder = findViewById(R.id.page_number);
-        number_holder.setText(String.valueOf(current_page));
+        page = findViewById(R.id.page);
+        page.getSettings().setBuiltInZoomControls(true);
+        page.getSettings().setDisplayZoomControls(false);
+        page.setInitialScale(130);
+
+        base_url = "http://cdn.twokinds.keenspot.com/comics/";
+
+        refresh();
 
         // TODO Switch from Webview to image view or load only the image and not the webpage for the comic
         setup_listeners();
         create_index_of_pages();
     }
-
 
     protected void create_index_of_pages(){
 
@@ -66,30 +74,26 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 // TODO Improve Speed of the index
-                // TODO Every Comic after 20181005 is .png .jpg so fix it -_-
                 // TODO GENERAL CLEAN UP OF CODE
                 // TODO Make Index of the pages go into a file so the index does not have to run everytime the app is ran.
-                String customURL = "http://cdn.twokinds.keenspot.com/comics/";
                 String string_url;
-                int total = 0;
                 Log.i("Twokinds","Index is running");
                 super.run();
-                for (int year = 2003; year <= 2019; year ++){
+                for (int year = 2003; year <= 20019; year ++){
                     Log.i("Twokinds","Year:" + year);
                     for (int month = 1; month <= 12; month ++) {
                         Log.i("Twokinds","Month:" + month);
                         for(int day = 1; day <= 31; day ++) {
                             Log.i("Twokinds","Day:" + day);
                             try {
-
                                 if (Integer.toString(month).length() < 2 && Integer.toString(day).length() < 2 ){
-                                    string_url = customURL + year + "0" + month + "0" + day + ".jpg";
+                                    string_url = base_url + year + "0" + month + "0" + day + ".jpg";
                                 } else if (Integer.toString(month).length() < 2 ){
-                                    string_url = customURL + year + "0" + month + day + ".jpg";
+                                    string_url = base_url + year + "0" + month + day + ".jpg";
                                 } else if (Integer.toString(day).length() < 2){
-                                    string_url = customURL + year + month + "0" + day + ".jpg";
+                                    string_url = base_url + year + month + "0" + day + ".jpg";
                                 } else {
-                                    string_url = customURL + year + month + day + ".jpg";
+                                    string_url = base_url + year + month + day + ".jpg";
                                 }
 
                                 URL url = new URL(string_url);
@@ -101,45 +105,11 @@ public class MainActivity extends AppCompatActivity {
                                 Log.i("Twokinds", string_url + " Responce Code:" + con.getResponseCode());
 
                                 if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                                    total = total + 1;
-                                    Index_of_pages[total] = string_url;
+                                    total_number_of_pages = total_number_of_pages + 1;
+                                    Index_of_pages[total_number_of_pages] = string_url;
                                     Log.i( "Twokinds",string_url + " Found");
                                 }
                             } catch (Exception e) {
-                                Log.i("Twokinds", "Not Found");
-                                e.printStackTrace();
-                            }
-                        }
-                        string_url = "";
-                    }
-                }
-                for(int year = 2019; year < 2021; year ++){
-                    for(int month = 1; month < 12; month++){
-                        for(int day = 1; day < 12; day++){
-                            try {
-                                if (Integer.toString(month).length() < 2 && Integer.toString(day).length() < 2) {
-                                    string_url = customURL + year + "0" + month + "0" + day + ".png";
-                                } else if (Integer.toString(month).length() < 2) {
-                                    string_url = customURL + year + "0" + month + day + ".png";
-                                } else if (Integer.toString(day).length() < 2) {
-                                    string_url = customURL + year + month + "0" + day + ".png";
-                                } else {
-                                    string_url = customURL + year + month + day + ".png";
-                                }
-
-                                URL url = new URL(string_url);
-
-                                HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                                con.setRequestMethod("HEAD");
-                                con.connect();
-
-                                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                                    total = total + 1;
-                                    Index_of_pages[total] = string_url;
-                                    Log.i("Twokinds", string_url + " Found");
-                                }
-                            }catch (Exception e) {
-                                Log.i("Twokinds", "Not Found");
                                 e.printStackTrace();
                             }
                         }
@@ -147,13 +117,58 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }.start();
+        // TODO Add multicore indexing to speed up the app. The code below works but it will produce the index out of order
+//        new Thread(){
+//
+//            @Override
+//            public void run() {
+//
+//                String customURL = "http://cdn.twokinds.keenspot.com/comics/";
+//                String string_url;
+//                Log.i("Twokinds", "Index is running");
+//                super.run();
+//                for (int year = 2006; year <= 2009; year++) {
+//                    Log.i("Twokinds", "Year:" + year);
+//                    for (int month = 1; month <= 12; month++) {
+//                        Log.i("Twokinds", "Month:" + month);
+//                        for (int day = 1; day <= 31; day++) {
+//                            Log.i("Twokinds", "Day:" + day);
+//                            try {
+//                                if (Integer.toString(month).length() < 2 && Integer.toString(day).length() < 2) {
+//                                    string_url = customURL + year + "0" + month + "0" + day + ".jpg";
+//                                } else if (Integer.toString(month).length() < 2) {
+//                                    string_url = customURL + year + "0" + month + day + ".jpg";
+//                                } else if (Integer.toString(day).length() < 2) {
+//                                    string_url = customURL + year + month + "0" + day + ".jpg";
+//                                } else {
+//                                    string_url = customURL + year + month + day + ".jpg";
+//                                }
+//
+//                                URL url = new URL(string_url);
+//
+//                                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+//                                con.setRequestMethod("HEAD");
+//                                con.connect();
+//
+//                                Log.i("Twokinds", string_url + " Responce Code:" + con.getResponseCode());
+//
+//                                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+//                                    total_number_of_pages = total_number_of_pages + 1;
+//                                    Index_of_pages[total_number_of_pages] = string_url;
+//                                    Log.i("Twokinds", string_url + " Found");
+//                                }
+//                            } catch (Exception e) {
+//                                Log.i("Twokinds", "Not Found");
+//                                e.printStackTrace();
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }.start();
     }
 
     public void setup_listeners(){
-        WebView page = findViewById(R.id.page);
-
-        page.getSettings().setBuiltInZoomControls(true);
-        page.getSettings().setDisplayZoomControls(false);
 
         page.loadUrl(Index_of_pages[current_page]);
 
@@ -164,13 +179,9 @@ public class MainActivity extends AppCompatActivity {
 
             public void onClick(View v) {
                 try {
-                    WebView page = findViewById(R.id.page);
-                    TextView number_holder = findViewById(R.id.page_number);
                     current_page = current_page + 1;
                     page.loadUrl(Index_of_pages[current_page]);
                     number_holder.setText(String.valueOf(current_page));
-
-                    SaveInt("current_page", current_page);
 
                 } catch (Exception e){
                     Toast.makeText(MainActivity.this, "Next Page has not been Indexed",
@@ -183,15 +194,11 @@ public class MainActivity extends AppCompatActivity {
 
             public void onClick(View v) {
                 try {
-                    TextView number_holder = findViewById(R.id.page_number);
-                    WebView page = findViewById(R.id.page);
                     current_page = current_page - 1;
                     page.loadUrl(Index_of_pages[current_page]);
                     number_holder.setText(String.valueOf(current_page));
-
-                    SaveInt("current_page", current_page);
                 } catch (Exception e){
-
+                    Log.i("twokinds","Prev_button Fail");
                 }
             }
         });
@@ -200,14 +207,10 @@ public class MainActivity extends AppCompatActivity {
 
             public void onClick(View v) {
                 try {
-                    WebView page = findViewById(R.id.page);
-                    TextView page_selected = findViewById(R.id.page_number);
-                    CharSequence num = page_selected.getText();
+                    CharSequence num = number_holder.getText();
                     current_page = Integer.parseInt(num.toString());
 
                     page.loadUrl(Index_of_pages[current_page]);
-
-                    SaveInt("current_page", current_page);
                 } catch (Exception e){
                     Toast.makeText(MainActivity.this, "This page has not been indexed yet",
                             Toast.LENGTH_LONG).show();
@@ -218,16 +221,58 @@ public class MainActivity extends AppCompatActivity {
 
     public int LoadInt(){
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        int savedValue = sharedPreferences.getInt("current_page", 1);
-        return savedValue;
+        return sharedPreferences.getInt("current_page", 1);
     }
-
     public void SaveInt(String key, int value){
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt(key, value);
-        editor.commit();
+        editor.apply();
     }
+//    public void SaveString(String key, String value){
+//        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+//        SharedPreferences.Editor editor = sharedPreferences.edit();
+//        editor.putString(key, value);
+//        editor.commit();
+//    }
+//    public String LoadString(String value){
+//        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+//        String savedValue = sharedPreferences.getString(value, null);
+//        return savedValue;
+//    }
+
+    public void refresh(){
+        number_holder.setText(String.valueOf(current_page));
+        page.loadUrl(Index_of_pages[current_page]);
+    }
+//    public static List<String> readLines() {
+//        File f = new File("Index_of_pages.txt");
+//        BufferedReader r;
+//        List<String> lines = new ArrayList<String>();
+//        try {
+//            r = new BufferedReader(new FileReader(f));
+//            String line;
+//            while (true) {
+//                if ((line = r.readLine()) == null)
+//                    break;
+//                lines.add(line);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace(); // file not found
+//        }
+//        return lines;
+//    }
+//    public static void writeLines(List<String> lines) {
+//        File f = new File("Index_of_pages.txt");
+//        try {
+//            PrintWriter pw = new PrintWriter(f);
+//            for (String line : lines)
+//                pw.println(line);
+//            pw.close();
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace(); // file not found
+//        }
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -245,15 +290,20 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            WebView page = findViewById(R.id.page);
-
-            page.getSettings().setBuiltInZoomControls(true);
-            page.getSettings().setDisplayZoomControls(false);
-
             page.loadUrl(Index_of_pages[current_page]);
             return true;
         }
-
+        if (id == R.id.latest_action){
+            page.loadUrl(Index_of_pages[total_number_of_pages]);
+            current_page = total_number_of_pages;
+            number_holder.setText(String.valueOf(current_page));
+        }
+        if (id == R.id.save_action){
+            SaveInt("current_page", current_page);
+        }
+        if (id == R.id.quit_action){
+            finish();
+        }
         return super.onOptionsItemSelected(item);
     }
 }
