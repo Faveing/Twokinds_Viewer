@@ -38,14 +38,12 @@
 
         <EditText
             android:id="@+id/page_number"
-            android:layout_width="70dp"
+            android:layout_width="50dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
             android:layout_weight="1"
             android:ems="10"
-            android:inputType="number|textPersonName"
-            android:text="@string/defualt_page" />
+            android:hint="@string/defualt_page"
+            android:inputType="number" />
 
         <Button
             android:id="@+id/goto_button"

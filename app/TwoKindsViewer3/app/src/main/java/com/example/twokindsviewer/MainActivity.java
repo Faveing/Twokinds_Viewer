@@ -1,5 +1,6 @@
 package com.example.twokindsviewer;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -8,6 +9,7 @@ import com.google.android.material.snackbar.Snackbar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
@@ -24,8 +26,6 @@ public class MainActivity extends AppCompatActivity {
 
     int current_page = 1;
 
-    int length_of_comic = 1000;
-
     String[] Index_of_pages;
 
     @Override
@@ -36,69 +36,26 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+//        FloatingActionButton fab = findViewById(R.id.fab);
+//        fab.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+//            }
+//        });
+
+
+        current_page = LoadInt();
 
         Index_of_pages = new String[1000];
 
+        TextView number_holder = findViewById(R.id.page_number);
+        number_holder.setText(String.valueOf(current_page));
+
         // TODO Switch from Webview to image view or load only the image and not the webpage for the comic
-
-        WebView page = findViewById(R.id.page);
-
-        page.getSettings().setBuiltInZoomControls(true);
-        page.getSettings().setDisplayZoomControls(false);
-
-        page.loadUrl("http://cdn.twokinds.keenspot.com/comics/20031022.jpg");
+        setup_listeners();
         create_index_of_pages();
-
-        // Listeners for buttons
-        final Button next_button = findViewById(R.id.next_button);
-        next_button.setOnClickListener(new View.OnClickListener() {
-
-
-            public void onClick(View v) {
-                try {
-                    WebView page = findViewById(R.id.page);
-                    current_page = current_page + 1;
-                    page.loadUrl(Index_of_pages[current_page]);
-                } catch (Exception e){
-                    Toast.makeText(MainActivity.this, "Next Page has not been Indexed",
-                            Toast.LENGTH_LONG).show();
-                }
-            }
-        });
-        final Button prev_button = findViewById(R.id.prev_button);
-        prev_button.setOnClickListener(new View.OnClickListener() {
-
-            public void onClick(View v) {
-                WebView page = findViewById(R.id.page);
-                current_page = current_page - 1;
-                page.loadUrl(Index_of_pages[current_page]);
-            }
-        });
-        final Button goto_button = findViewById(R.id.goto_button);
-        goto_button.setOnClickListener(new View.OnClickListener() {
-
-            public void onClick(View v) {
-                try {
-                    WebView page = findViewById(R.id.page);
-                    TextView page_selected = findViewById(R.id.page_number);
-                    CharSequence num = page_selected.getText();
-                    current_page = Integer.parseInt(num.toString());
-
-                    page.loadUrl(Index_of_pages[current_page]);
-                } catch (Exception e){
-                    Toast.makeText(MainActivity.this, "This page has not been indexed yet",
-                            Toast.LENGTH_LONG).show();
-                }
-            }
-        });
     }
 
 
@@ -156,8 +113,120 @@ public class MainActivity extends AppCompatActivity {
                         string_url = "";
                     }
                 }
+                for(int year = 2019; year < 2021; year ++){
+                    for(int month = 1; month < 12; month++){
+                        for(int day = 1; day < 12; day++){
+                            try {
+                                if (Integer.toString(month).length() < 2 && Integer.toString(day).length() < 2) {
+                                    string_url = customURL + year + "0" + month + "0" + day + ".png";
+                                } else if (Integer.toString(month).length() < 2) {
+                                    string_url = customURL + year + "0" + month + day + ".png";
+                                } else if (Integer.toString(day).length() < 2) {
+                                    string_url = customURL + year + month + "0" + day + ".png";
+                                } else {
+                                    string_url = customURL + year + month + day + ".png";
+                                }
+
+                                URL url = new URL(string_url);
+
+                                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                                con.setRequestMethod("HEAD");
+                                con.connect();
+
+                                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                                    total = total + 1;
+                                    Index_of_pages[total] = string_url;
+                                    Log.i("Twokinds", string_url + " Found");
+                                }
+                            }catch (Exception e) {
+                                Log.i("Twokinds", "Not Found");
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
             }
         }.start();
+    }
+
+    public void setup_listeners(){
+        WebView page = findViewById(R.id.page);
+
+        page.getSettings().setBuiltInZoomControls(true);
+        page.getSettings().setDisplayZoomControls(false);
+
+        page.loadUrl(Index_of_pages[current_page]);
+
+        // Listeners for buttons
+        final Button next_button = findViewById(R.id.next_button);
+        next_button.setOnClickListener(new View.OnClickListener() {
+
+
+            public void onClick(View v) {
+                try {
+                    WebView page = findViewById(R.id.page);
+                    TextView number_holder = findViewById(R.id.page_number);
+                    current_page = current_page + 1;
+                    page.loadUrl(Index_of_pages[current_page]);
+                    number_holder.setText(String.valueOf(current_page));
+
+                    SaveInt("current_page", current_page);
+
+                } catch (Exception e){
+                    Toast.makeText(MainActivity.this, "Next Page has not been Indexed",
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+        final Button prev_button = findViewById(R.id.prev_button);
+        prev_button.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                try {
+                    TextView number_holder = findViewById(R.id.page_number);
+                    WebView page = findViewById(R.id.page);
+                    current_page = current_page - 1;
+                    page.loadUrl(Index_of_pages[current_page]);
+                    number_holder.setText(String.valueOf(current_page));
+
+                    SaveInt("current_page", current_page);
+                } catch (Exception e){
+
+                }
+            }
+        });
+        final Button goto_button = findViewById(R.id.goto_button);
+        goto_button.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                try {
+                    WebView page = findViewById(R.id.page);
+                    TextView page_selected = findViewById(R.id.page_number);
+                    CharSequence num = page_selected.getText();
+                    current_page = Integer.parseInt(num.toString());
+
+                    page.loadUrl(Index_of_pages[current_page]);
+
+                    SaveInt("current_page", current_page);
+                } catch (Exception e){
+                    Toast.makeText(MainActivity.this, "This page has not been indexed yet",
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    public int LoadInt(){
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        int savedValue = sharedPreferences.getInt("current_page", 1);
+        return savedValue;
+    }
+
+    public void SaveInt(String key, int value){
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt(key, value);
+        editor.commit();
     }
 
     @Override
@@ -176,11 +245,15 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            WebView page = findViewById(R.id.page);
+
+            page.getSettings().setBuiltInZoomControls(true);
+            page.getSettings().setDisplayZoomControls(false);
+
+            page.loadUrl(Index_of_pages[current_page]);
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
-
-
 }
