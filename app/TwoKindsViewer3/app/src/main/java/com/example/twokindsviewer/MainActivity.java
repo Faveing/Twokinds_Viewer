@@ -18,16 +18,27 @@ import android.widget.Toast;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
-
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
 
     private int current_page = 1;
-    private String[] Index_of_pages;
     private WebView page;
     private TextView number_holder;
     private int total_number_of_pages;
     private String base_url;
+    private String[] unsorted_index_of_pages;
+    private String[] sorted_index_of_pages;
+
+    private boolean thread1;
+    private boolean thread2;
+    private boolean thread3;
+    private boolean thread4;
+    private boolean thread5;
+    private boolean thread6;
+    private boolean thread7;
+
+    private boolean indexing_finished = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,16 +62,25 @@ public class MainActivity extends AppCompatActivity {
 
         number_holder = findViewById(R.id.page_number);
 
-        Index_of_pages = new String[1000];
+        //Index_of_pages = new String[1000];
+        unsorted_index_of_pages = new String[1200];
+        sorted_index_of_pages = new String[1200];
 
         page = findViewById(R.id.page);
         page.getSettings().setBuiltInZoomControls(true);
         page.getSettings().setDisplayZoomControls(false);
         page.setInitialScale(130);
 
-        base_url = "http://cdn.twokinds.keenspot.com/comics/";
+        // Init for variables that keep track is thread is running false = running true = done
+        thread1 = false;
+        thread2 = false;
+        thread3 = false;
+        thread4 = false;
+        thread5 = false;
+        thread6 = false;
+        thread7 = false;
 
-        refresh();
+        base_url = "http://cdn.twokinds.keenspot.com/comics/";
 
         // TODO Switch from Webview to image view or load only the image and not the webpage for the comic
         setup_listeners();
@@ -77,37 +97,39 @@ public class MainActivity extends AppCompatActivity {
                 // TODO GENERAL CLEAN UP OF CODE
                 // TODO Make Index of the pages go into a file so the index does not have to run everytime the app is ran.
                 String string_url;
-                Log.i("Twokinds","Index is running");
+                int thread = 1;
+                //Log.i("Twokinds","Index is running");
                 super.run();
-                for (int year = 2003; year <= 20019; year ++){
-                    Log.i("Twokinds","Year:" + year);
+                for (int year = 2003; year <= 2005; year ++){
+                    //Log.i("Twokinds","Year:" + year);
                     for (int month = 1; month <= 12; month ++) {
-                        Log.i("Twokinds","Month:" + month);
+                        //Log.i("Twokinds","Month:" + month);
                         for(int day = 1; day <= 31; day ++) {
-                            Log.i("Twokinds","Day:" + day);
+                            //Log.i("Twokinds","Day:" + day);
                             try {
                                 if (Integer.toString(month).length() < 2 && Integer.toString(day).length() < 2 ){
-                                    string_url = base_url + year + "0" + month + "0" + day + ".jpg";
+                                    string_url = year + "0" + month + "0" + day;
                                 } else if (Integer.toString(month).length() < 2 ){
-                                    string_url = base_url + year + "0" + month + day + ".jpg";
+                                    string_url = year + "0" + month + day;
                                 } else if (Integer.toString(day).length() < 2){
-                                    string_url = base_url + year + month + "0" + day + ".jpg";
+                                    string_url = year + month + "0" + day;
                                 } else {
-                                    string_url = base_url + year + month + day + ".jpg";
+                                    string_url = String.valueOf(year) + String.valueOf(month) + String.valueOf(day);
                                 }
 
-                                URL url = new URL(string_url);
+                                URL url = new URL(base_url + string_url + ".jpg");
 
                                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
                                 con.setRequestMethod("HEAD");
                                 con.connect();
 
-                                Log.i("Twokinds", string_url + " Responce Code:" + con.getResponseCode());
+                                //Log.i("Twokinds", string_url + " Responce Code:" + con.getResponseCode());
 
                                 if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
                                     total_number_of_pages = total_number_of_pages + 1;
-                                    Index_of_pages[total_number_of_pages] = string_url;
-                                    Log.i( "Twokinds",string_url + " Found");
+                                    //Index_of_pages[total_number_of_pages] = string_url;
+                                    unsorted_index_of_pages[total_number_of_pages] = string_url;
+                                    Log.i("Twokinds", Long.valueOf(string_url) + " Found " + total_number_of_pages + " thread: " + thread);
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -115,62 +137,307 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }
+                thread_finish_check(1);
             }
         }.start();
         // TODO Add multicore indexing to speed up the app. The code below works but it will produce the index out of order
-//        new Thread(){
-//
-//            @Override
-//            public void run() {
-//
-//                String customURL = "http://cdn.twokinds.keenspot.com/comics/";
-//                String string_url;
-//                Log.i("Twokinds", "Index is running");
-//                super.run();
-//                for (int year = 2006; year <= 2009; year++) {
-//                    Log.i("Twokinds", "Year:" + year);
-//                    for (int month = 1; month <= 12; month++) {
-//                        Log.i("Twokinds", "Month:" + month);
-//                        for (int day = 1; day <= 31; day++) {
-//                            Log.i("Twokinds", "Day:" + day);
-//                            try {
-//                                if (Integer.toString(month).length() < 2 && Integer.toString(day).length() < 2) {
-//                                    string_url = customURL + year + "0" + month + "0" + day + ".jpg";
-//                                } else if (Integer.toString(month).length() < 2) {
-//                                    string_url = customURL + year + "0" + month + day + ".jpg";
-//                                } else if (Integer.toString(day).length() < 2) {
-//                                    string_url = customURL + year + month + "0" + day + ".jpg";
-//                                } else {
-//                                    string_url = customURL + year + month + day + ".jpg";
-//                                }
-//
-//                                URL url = new URL(string_url);
-//
-//                                HttpURLConnection con = (HttpURLConnection) url.openConnection();
-//                                con.setRequestMethod("HEAD");
-//                                con.connect();
-//
-//                                Log.i("Twokinds", string_url + " Responce Code:" + con.getResponseCode());
-//
-//                                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
-//                                    total_number_of_pages = total_number_of_pages + 1;
-//                                    Index_of_pages[total_number_of_pages] = string_url;
-//                                    Log.i("Twokinds", string_url + " Found");
-//                                }
-//                            } catch (Exception e) {
-//                                Log.i("Twokinds", "Not Found");
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }.start();
+        new Thread(){
+
+            @Override
+            public void run() {
+                String string_url;
+                //Log.i("Twokinds", "Index is running");
+                int thread = 2;
+                super.run();
+                for (int year = 2006; year <= 2008; year++) {
+                    //Log.i("Twokinds", "Year:" + year);
+                    for (int month = 1; month <= 12; month++) {
+                        //Log.i("Twokinds", "Month:" + month);
+                        for (int day = 1; day <= 31; day++) {
+                            //Log.i("Twokinds", "Day:" + day);
+                            try {
+                                if (Integer.toString(month).length() < 2 && Integer.toString(day).length() < 2 ){
+                                    string_url = year + "0" + month + "0" + day;
+                                } else if (Integer.toString(month).length() < 2 ){
+                                    string_url = year + "0" + month + day;
+                                } else if (Integer.toString(day).length() < 2){
+                                    string_url = year + month + "0" + day;
+                                } else {
+                                    string_url = String.valueOf(year) + String.valueOf(month) + String.valueOf(day);
+                                }
+
+                                URL url = new URL(base_url + string_url + ".jpg");
+
+                                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                                con.setRequestMethod("HEAD");
+                                con.connect();
+
+                                //Log.i("Twokinds", string_url + " Responce Code:" + con.getResponseCode());
+
+                                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                                    total_number_of_pages = total_number_of_pages + 1;
+                                    //Index_of_pages[total_number_of_pages] = string_url;
+                                    unsorted_index_of_pages[total_number_of_pages] = string_url;
+                                    Log.i("Twokinds", Long.valueOf(string_url) + " Found " + total_number_of_pages + " thread: " + thread);
+                                }
+                            } catch (Exception e) {
+                                //Log.i("Twokinds", "Not Found");
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+                thread_finish_check(thread);
+            }
+        }.start();
+        new Thread(){
+
+            @Override
+            public void run() {
+                String string_url;
+                //Log.i("Twokinds", "Index is running");
+                int thread = 3;
+                super.run();
+                for (int year = 2009; year <= 2011; year++) {
+                    //Log.i("Twokinds", "Year:" + year);
+                    for (int month = 1; month <= 12; month++) {
+                        //Log.i("Twokinds", "Month:" + month);
+                        for (int day = 1; day <= 31; day++) {
+                            //Log.i("Twokinds", "Day:" + day);
+                            try {
+                                if (Integer.toString(month).length() < 2 && Integer.toString(day).length() < 2 ){
+                                    string_url = year + "0" + month + "0" + day;
+                                } else if (Integer.toString(month).length() < 2 ){
+                                    string_url = year + "0" + month + day;
+                                } else if (Integer.toString(day).length() < 2){
+                                    string_url = year + month + "0" + day;
+                                } else {
+                                    string_url = String.valueOf(year) + String.valueOf(month) + String.valueOf(day);
+                                }
+
+                                URL url = new URL(base_url + string_url + ".jpg");
+
+                                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                                con.setRequestMethod("HEAD");
+                                con.connect();
+
+                                //Log.i("Twokinds", string_url + " Responce Code:" + con.getResponseCode());
+
+                                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                                    total_number_of_pages = total_number_of_pages + 1;
+                                    //Index_of_pages[total_number_of_pages] = string_url;
+                                    unsorted_index_of_pages[total_number_of_pages] = string_url;
+                                    Log.i("Twokinds", Long.valueOf(string_url) + " Found " + total_number_of_pages + " thread: " + thread);
+                                }
+                            } catch (Exception e) {
+                                //Log.i("Twokinds", "Not Found");
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+                thread_finish_check(thread);
+            }
+        }.start();
+        new Thread(){
+
+            @Override
+            public void run() {
+                String string_url;
+                //Log.i("Twokinds", "Index is running");
+                int thread = 4;
+                super.run();
+                for (int year = 2012; year <= 2014; year++) {
+                    //Log.i("Twokinds", "Year:" + year);
+                    for (int month = 1; month <= 12; month++) {
+                        //Log.i("Twokinds", "Month:" + month);
+                        for (int day = 1; day <= 31; day++) {
+                            //Log.i("Twokinds", "Day:" + day);
+                            try {
+                                if (Integer.toString(month).length() < 2 && Integer.toString(day).length() < 2 ){
+                                    string_url = year + "0" + month + "0" + day;
+                                } else if (Integer.toString(month).length() < 2 ){
+                                    string_url = year + "0" + month + day;
+                                } else if (Integer.toString(day).length() < 2){
+                                    string_url = year + month + "0" + day;
+                                } else {
+                                    string_url = String.valueOf(year) + String.valueOf(month) + String.valueOf(day);
+                                }
+
+                                URL url = new URL(base_url + string_url + ".jpg");
+
+                                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                                con.setRequestMethod("HEAD");
+                                con.connect();
+
+                                //Log.i("Twokinds", string_url + " Responce Code:" + con.getResponseCode());
+
+                                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                                    total_number_of_pages = total_number_of_pages + 1;
+                                    //Index_of_pages[total_number_of_pages] = string_url;
+                                    unsorted_index_of_pages[total_number_of_pages] = string_url;
+                                    Log.i("Twokinds", Long.valueOf(string_url) + " Found " + total_number_of_pages + " thread: " + thread);
+                                }
+                            } catch (Exception e) {
+                                //Log.i("Twokinds", "Not Found");
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+                thread_finish_check(thread);
+            }
+        }.start();
+        new Thread(){
+
+            @Override
+            public void run() {
+                String string_url;
+                Log.i("Twokinds", "Index is running");
+                int thread = 5;
+                super.run();
+                for (int year = 2015; year <= 2017; year++) {
+                    //Log.i("Twokinds", "Year:" + year);
+                    for (int month = 1; month <= 12; month++) {
+                        //Log.i("Twokinds", "Month:" + month);
+                        for (int day = 1; day <= 31; day++) {
+                            //Log.i("Twokinds", "Day:" + day);
+                            try {
+                                if (Integer.toString(month).length() < 2 && Integer.toString(day).length() < 2 ){
+                                    string_url = year + "0" + month + "0" + day;
+                                } else if (Integer.toString(month).length() < 2 ){
+                                    string_url = year + "0" + month + day;
+                                } else if (Integer.toString(day).length() < 2){
+                                    string_url = year + month + "0" + day;
+                                } else {
+                                    string_url = String.valueOf(year) + String.valueOf(month) + String.valueOf(day);
+                                }
+
+                                URL url = new URL(base_url + string_url + ".jpg");
+
+                                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                                con.setRequestMethod("HEAD");
+                                con.connect();
+
+                                //Log.i("Twokinds", string_url + " Responce Code:" + con.getResponseCode());
+
+                                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                                    total_number_of_pages = total_number_of_pages + 1;
+                                    //Index_of_pages[total_number_of_pages] = string_url;
+                                    unsorted_index_of_pages[total_number_of_pages] = string_url;
+                                    Log.i("Twokinds", Long.valueOf(string_url) + " Found " + total_number_of_pages + " thread: " + thread);
+                                }
+                            } catch (Exception e) {
+                                //Log.i("Twokinds", "Not Found");
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+                thread_finish_check(thread);
+            }
+        }.start();
+        new Thread(){
+
+            @Override
+            public void run() {
+                String string_url;
+                Log.i("Twokinds", "Index is running");
+                int thread = 6;
+                super.run();
+                for (int year = 2018; year <= 2019; year++) {
+                    //Log.i("Twokinds", "Year:" + year);
+                    for (int month = 1; month <= 12; month++) {
+                        //Log.i("Twokinds", "Month:" + month);
+                        for (int day = 1; day <= 31; day++) {
+                            //Log.i("Twokinds", "Day:" + day);
+                            try {
+                                if (Integer.toString(month).length() < 2 && Integer.toString(day).length() < 2 ){
+                                    string_url = year + "0" + month + "0" + day;
+                                } else if (Integer.toString(month).length() < 2 ){
+                                    string_url = year + "0" + month + day;
+                                } else if (Integer.toString(day).length() < 2){
+                                    string_url = year + month + "0" + day;
+                                } else {
+                                    string_url = String.valueOf(year) + String.valueOf(month) + String.valueOf(day);
+                                }
+
+                                URL url = new URL(base_url + string_url + ".jpg");
+
+                                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                                con.setRequestMethod("HEAD");
+                                con.connect();
+
+                                //Log.i("Twokinds", string_url + " Responce Code:" + con.getResponseCode());
+
+                                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                                    total_number_of_pages = total_number_of_pages + 1;
+                                    //Index_of_pages[total_number_of_pages] = string_url;
+                                    unsorted_index_of_pages[total_number_of_pages] = string_url;
+                                    Log.i("Twokinds", Long.valueOf(string_url) + " Found " + total_number_of_pages + " thread: " + thread);
+                                }
+                            } catch (Exception e) {
+                                //Log.i("Twokinds", "Not Found");
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+                thread_finish_check(thread);
+            }
+        }.start();
+        new Thread(){
+
+            @Override
+            public void run() {
+                String string_url;
+                //Log.i("Twokinds", "Index is running");
+                int thread = 7;
+                super.run();
+                for (int year = 2019; year <= 2020; year++) {
+                    //Log.i("Twokinds", "Year:" + year);
+                    for (int month = 1; month <= 12; month++) {
+                        //Log.i("Twokinds", "Month:" + month);
+                        for (int day = 1; day <= 31; day++) {
+                            //Log.i("Twokinds", "Day:" + day);
+                            try {
+                                if (Integer.toString(month).length() < 2 && Integer.toString(day).length() < 2 ){
+                                    string_url = year + "0" + month + "0" + day;
+                                } else if (Integer.toString(month).length() < 2 ){
+                                    string_url = year + "0" + month + day;
+                                } else if (Integer.toString(day).length() < 2){
+                                    string_url = year + month + "0" + day;
+                                } else {
+                                    string_url = String.valueOf(year) + String.valueOf(month) + String.valueOf(day);
+                                }
+
+                                URL url = new URL(base_url + string_url + ".png");
+
+                                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                                con.setRequestMethod("HEAD");
+                                con.connect();
+
+                                //Log.i("Twokinds", string_url + " Responce Code:" + con.getResponseCode());
+
+                                if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                                    total_number_of_pages = total_number_of_pages + 1;
+                                    //Index_of_pages[total_number_of_pages] = string_url;
+                                    unsorted_index_of_pages[total_number_of_pages] = string_url;
+                                    Log.i("Twokinds", Long.valueOf(string_url) + " Found " + total_number_of_pages + "  thread: " + thread);
+                                }
+                            } catch (Exception e) {
+                                //Log.i("Twokinds", "Not Found");
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+                thread_finish_check(thread);
+            }
+        }.start();
     }
 
     public void setup_listeners(){
-
-        page.loadUrl(Index_of_pages[current_page]);
 
         // Listeners for buttons
         final Button next_button = findViewById(R.id.next_button);
@@ -179,10 +446,14 @@ public class MainActivity extends AppCompatActivity {
 
             public void onClick(View v) {
                 try {
-                    current_page = current_page + 1;
-                    page.loadUrl(Index_of_pages[current_page]);
-                    number_holder.setText(String.valueOf(current_page));
-
+                    if (indexing_finished) {
+                        current_page = current_page + 1;
+                        page.loadUrl(base_url + sorted_index_of_pages[current_page] + check_file_type(current_page));
+                        number_holder.setText(String.valueOf(current_page));
+                    } else {
+                        Toast.makeText(MainActivity.this, "Indexing has not finished yet it should take 1-2 minutes.",
+                                Toast.LENGTH_LONG).show();
+                    }
                 } catch (Exception e){
                     Toast.makeText(MainActivity.this, "Next Page has not been Indexed",
                             Toast.LENGTH_LONG).show();
@@ -194,9 +465,14 @@ public class MainActivity extends AppCompatActivity {
 
             public void onClick(View v) {
                 try {
-                    current_page = current_page - 1;
-                    page.loadUrl(Index_of_pages[current_page]);
-                    number_holder.setText(String.valueOf(current_page));
+                    if (indexing_finished) {
+                        current_page = current_page - 1;
+                        page.loadUrl(base_url + sorted_index_of_pages[current_page] + check_file_type(current_page));
+                        number_holder.setText(String.valueOf(current_page));
+                    } else {
+                        Toast.makeText(MainActivity.this, "Indexing has not finished yet it should take 1-2 minutes.",
+                                Toast.LENGTH_LONG).show();
+                    }
                 } catch (Exception e){
                     Log.i("twokinds","Prev_button Fail");
                 }
@@ -207,10 +483,15 @@ public class MainActivity extends AppCompatActivity {
 
             public void onClick(View v) {
                 try {
-                    CharSequence num = number_holder.getText();
-                    current_page = Integer.parseInt(num.toString());
+                    if (indexing_finished) {
+                        CharSequence num = number_holder.getText();
+                        current_page = Integer.parseInt(num.toString());
 
-                    page.loadUrl(Index_of_pages[current_page]);
+                        page.loadUrl(base_url + sorted_index_of_pages[current_page] + check_file_type(current_page));
+                    } else {
+                        Toast.makeText(MainActivity.this, "Indexing has not finished yet it should take 1-2 minutes.",
+                                Toast.LENGTH_LONG).show();
+                    }
                 } catch (Exception e){
                     Toast.makeText(MainActivity.this, "This page has not been indexed yet",
                             Toast.LENGTH_LONG).show();
@@ -229,50 +510,70 @@ public class MainActivity extends AppCompatActivity {
         editor.putInt(key, value);
         editor.apply();
     }
-//    public void SaveString(String key, String value){
-//        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-//        SharedPreferences.Editor editor = sharedPreferences.edit();
-//        editor.putString(key, value);
-//        editor.commit();
-//    }
-//    public String LoadString(String value){
-//        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-//        String savedValue = sharedPreferences.getString(value, null);
-//        return savedValue;
-//    }
+
+    public String check_file_type(int page){
+        if (page >= 943){
+            return ".png";
+        } else{
+            return ".jpg";
+        }
+    }
+
+    public String[] sort_index_list(String[] unsorted_list){
+        //Log.i("twokinds", unsorted_list[current_page]);
+        unsorted_list = clean(unsorted_list);
+        Arrays.sort(unsorted_list);
+        return unsorted_list;
+    }
+
+    public void thread_finish_check(int thread){
+
+        if(thread == 1){
+            thread1 = true;
+            Log.i("twokinds","Index thread 1 has finished");
+        } else if(thread == 2){
+            thread2 = true;
+            Log.i("twokinds","Index thread 2 has finished");
+        } else if(thread == 3){
+            thread3 = true;
+            Log.i("twokinds","Index thread 3 has finished");
+        } else if(thread == 4){
+            thread4 = true;
+            Log.i("twokinds","Index thread 4 has finished");
+        } else if(thread == 5){
+            thread5 = true;
+            Log.i("twokinds","Index thread 5 has finished");
+        } else if(thread == 6){
+            thread6 = true;
+            Log.i("twokinds","Index thread 6 has finished");
+        } else if(thread == 7){
+            thread7 = true;
+            Log.i("twokinds","Index thread 7 has finished");
+        }
+
+        if(thread1 && thread2 && thread3 && thread4 && thread5 && thread6 && thread7){
+            sorted_index_of_pages = sort_index_list(unsorted_index_of_pages);
+            Log.i("twokinds","All threads have finished and index list is sorted");
+            indexing_finished = true;
+        }
+    }
 
     public void refresh(){
         number_holder.setText(String.valueOf(current_page));
-        page.loadUrl(Index_of_pages[current_page]);
+        Log.i("twokinds", String.valueOf(sorted_index_of_pages[current_page]));
+        page.loadUrl(base_url + sorted_index_of_pages[current_page] + ".jpg");
     }
-//    public static List<String> readLines() {
-//        File f = new File("Index_of_pages.txt");
-//        BufferedReader r;
-//        List<String> lines = new ArrayList<String>();
-//        try {
-//            r = new BufferedReader(new FileReader(f));
-//            String line;
-//            while (true) {
-//                if ((line = r.readLine()) == null)
-//                    break;
-//                lines.add(line);
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace(); // file not found
-//        }
-//        return lines;
-//    }
-//    public static void writeLines(List<String> lines) {
-//        File f = new File("Index_of_pages.txt");
-//        try {
-//            PrintWriter pw = new PrintWriter(f);
-//            for (String line : lines)
-//                pw.println(line);
-//            pw.close();
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace(); // file not found
-//        }
-//    }
+
+    public static String[] clean(final String[] v) {
+        for(int i = 0; i < v.length; i++){
+            if (v[i] == null){
+                Log.i("twokinds", "Cleaned " + i);
+                v[i] = "A"; // A because it will be above the numbers when it is sorted
+                            // Just a really dirty way of cleaning null values
+            }
+        }
+        return v;
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -290,13 +591,24 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            page.loadUrl(Index_of_pages[current_page]);
-            return true;
+            if (indexing_finished) {
+                refresh();
+            } else {
+                Toast.makeText(MainActivity.this, "Indexing has not finished yet it should take 1-2 minutes.",
+                        Toast.LENGTH_LONG).show();
+            }
+
         }
         if (id == R.id.latest_action){
-            page.loadUrl(Index_of_pages[total_number_of_pages]);
-            current_page = total_number_of_pages;
-            number_holder.setText(String.valueOf(current_page));
+            if (indexing_finished) {
+                current_page = total_number_of_pages - 1;
+                page.loadUrl(base_url + sorted_index_of_pages[current_page] + check_file_type(current_page));
+                Log.i("twokinds", "loaded" + sorted_index_of_pages[current_page] + check_file_type(current_page));
+                number_holder.setText(String.valueOf(current_page));
+            } else {
+                Toast.makeText(MainActivity.this, "Indexing has not finished yet it should take 1-2 minutes.",
+                        Toast.LENGTH_LONG).show();
+            }
         }
         if (id == R.id.save_action){
             SaveInt("current_page", current_page);
