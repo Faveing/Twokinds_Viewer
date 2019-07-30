@@ -12,15 +12,16 @@
         android:id="@+id/page"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:layout_editor_absoluteY="50dp">
+        android:visibility="visible"
+        tools:layout_editor_absoluteX="8dp">
 
     </WebView>
 
     <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
+        android:background="?attr/panelBackground"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="@+id/page"
         app:layout_constraintEnd_toEndOf="parent"
@@ -30,36 +31,28 @@
             android:id="@+id/prev_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
             android:layout_weight="1"
             android:text="@string/prev_page" />
-
-        <EditText
-            android:id="@+id/page_number"
-            android:layout_width="40dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="@string/defualt_page"
-            android:inputType="number" />
-
-        <Button
-            android:id="@+id/goto_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
-            android:layout_weight="1"
-            android:text="@string/goto_button" />
 
         <Button
             android:id="@+id/next_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
             android:layout_weight="1"
             android:text="@string/next_page" />
     </LinearLayout>
+
+    <EditText
+        android:id="@+id/page_number"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:background="@android:drawable/editbox_background"
+        android:ems="10"
+        android:focusable="auto"
+        android:inputType="number"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

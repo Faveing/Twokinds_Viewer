@@ -8,6 +8,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
         current_page = LoadInt();
 
         number_holder = findViewById(R.id.page_number);
-
+        number_holder.setText(String.valueOf(current_page));
         //Index_of_pages = new String[1000];
         unsorted_index_of_pages = new String[1200];
         sorted_index_of_pages = new String[1200];
@@ -478,23 +479,49 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        final Button goto_button = findViewById(R.id.goto_button);
-        goto_button.setOnClickListener(new View.OnClickListener() {
-
-            public void onClick(View v) {
+//        final Button goto_button = findViewById(R.id.goto_button);
+//        goto_button.setOnClickListener(new View.OnClickListener() {
+//
+//            public void onClick(View v) {
+//                try {
+//                    if (indexing_finished) {
+//                        CharSequence num = number_holder.getText();
+//                        current_page = Integer.parseInt(num.toString());
+//
+//                        page.loadUrl(base_url + sorted_index_of_pages[current_page] + check_file_type(current_page));
+//                    } else {
+//                        Toast.makeText(MainActivity.this, "Indexing has not finished yet it should take 1-2 minutes.",
+//                                Toast.LENGTH_LONG).show();
+//                    }
+//                } catch (Exception e){
+//                    Toast.makeText(MainActivity.this, "This page has not been indexed yet",
+//                            Toast.LENGTH_LONG).show();
+//                }
+//            }
+//        });
+        number_holder.setOnKeyListener(new View.OnKeyListener() {
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                // If the event is a key-down event on the "enter" button
                 try {
-                    if (indexing_finished) {
-                        CharSequence num = number_holder.getText();
-                        current_page = Integer.parseInt(num.toString());
+                        if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
+                                (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                            // Perform action on key press
+                            if (indexing_finished) {
+                                CharSequence num = number_holder.getText();
+                                current_page = Integer.parseInt(num.toString());
 
-                        page.loadUrl(base_url + sorted_index_of_pages[current_page] + check_file_type(current_page));
-                    } else {
-                        Toast.makeText(MainActivity.this, "Indexing has not finished yet it should take 1-2 minutes.",
-                                Toast.LENGTH_LONG).show();
-                    }
+                                page.loadUrl(base_url + sorted_index_of_pages[current_page] + check_file_type(current_page));
+                                return true;
+                            } else {
+                                Toast.makeText(MainActivity.this, "Indexing has not finished yet it should take 1-2 minutes.",
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    return false;
                 } catch (Exception e){
-                    Toast.makeText(MainActivity.this, "This page has not been indexed yet",
+                    Toast.makeText(MainActivity.this, "There has been a fatal error.",
                             Toast.LENGTH_LONG).show();
+                    return false;
                 }
             }
         });
@@ -520,13 +547,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public String[] sort_index_list(String[] unsorted_list){
-        //Log.i("twokinds", unsorted_list[current_page]);
         unsorted_list = clean(unsorted_list);
         Arrays.sort(unsorted_list);
         return unsorted_list;
     }
 
     public void thread_finish_check(int thread){
+
+        // Just a function that will keep track of which threads have finished indexing and when they are all done it run the sort code.
 
         if(thread == 1){
             thread1 = true;
